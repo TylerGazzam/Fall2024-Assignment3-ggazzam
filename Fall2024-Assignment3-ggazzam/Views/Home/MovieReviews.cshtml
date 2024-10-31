@@ -1,0 +1,54 @@
+﻿@{
+    ViewData["Title"] = "Movie Reviews";
+}
+<div class="MovieTitle">
+    <h1>Movie Reviews</h1>
+</div>
+<div class="containerMovie">
+    <select id="movieDropdown" name="movieDropdown">
+        <option value="">Select a Movie</option>
+    </select>
+    <div id="movieDetails" style="margin-top: 20px;">
+        <p><strong>IMDB Link:</strong> <span id="imdbLink"></span></p>
+        <p><strong>Genre:</strong> <span id="genre"></span></p>
+        <p><strong>Year of Release:</strong> <span id="yearOfRelease"></span></p>
+    </div>
+    <button id="seeReviewsButton" style="display: none; margin-top: 20px;">See Reviews</button>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        fetch('/Movies/GetMovieTitles')
+            .then(response => response.json())
+            .then(data => {
+                const dropdown = document.getElementById('movieDropdown');
+                data.forEach(title => {
+                    const option = document.createElement('option');
+                    option.value = title;
+                    option.text = title;
+                    dropdown.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error fetching movie titles:', error));
+
+        document.getElementById('movieDropdown').addEventListener('change', function () {
+            const selectedTitle = this.value;
+            if (selectedTitle) {
+                fetch(`/Movies/GetMovieDetails?title=${encodeURIComponent(selectedTitle)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('imdbLink').innerHTML = `<a href="${data.IMBDLink}" target="_blank">${data.IMBDLink}</a>`;
+                        document.getElementById('genre').textContent = data.Genre;
+                        document.getElementById('yearOfRelease').textContent = data.YearOfRelease;
+                        document.getElementById('seeReviewsButton').style.display = 'block'; // Unhide the button
+                    })
+                    .catch(error => console.error('Error fetching movie details:', error));
+            } else {
+                document.getElementById('imdbLink').textContent = '';
+                document.getElementById('genre').textContent = '';
+                document.getElementById('yearOfRelease').textContent = '';
+                document.getElementById('seeReviewsButton').style.display = 'none'; // Hide the button again
+            }
+        });
+    });
+</script>
