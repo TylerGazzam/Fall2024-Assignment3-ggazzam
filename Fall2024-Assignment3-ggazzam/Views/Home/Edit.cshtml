@@ -1,6 +1,171 @@
 ﻿@{
     ViewData["Title"] = "Edit";
 }
-<h1>@ViewData["Title"]</h1>
+<div class="EditTitle">
+    <h1>Edit</h1>
+</div>
+<div class="containerEdit">
+    <select id="EditDropdown" name="EditDropdown">
+        <option value="">Select a Database</option>
+        <option value="Actors">Actors</option>
+        <option value="Movies">Movies</option>
+    </select>
+    <select id="ActionDropdown" name="ActionDropdown" style="display: none; margin-top: 20px;">
+        <option value="">Select an Action</option>
+    </select>
+    <select id="NameDropdown" name="NameDropdown" style="display: none; margin-top: 20px;">
+        <option value="">Select a Name/Title</option>
+    </select>
+    <div id="formContainer" style="display: none; margin-top: 20px;"></div>
+</div>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<script>
+    document.getElementById('EditDropdown').addEventListener('change', function () {
+        const selectedDatabase = this.value;
+        const actionDropdown = document.getElementById('ActionDropdown');
+        const formContainer = document.getElementById('formContainer');
+
+        if (selectedDatabase === "Actors") {
+            actionDropdown.innerHTML = `
+                    <option value="">Select an Action</option>
+                    <option value="AddActor">Add new Actor</option>
+                    <option value="EditActor">Edit Actor</option>
+                    <option value="DeleteActor">Delete Actor</option>
+                `;
+            actionDropdown.style.display = 'block';
+        } else if (selectedDatabase === "Movies") {
+            actionDropdown.innerHTML = `
+                    <option value="">Select an Action</option>
+                    <option value="AddMovie">Add new Movie</option>
+                    <option value="EditMovie">Edit Movie</option>
+                    <option value="DeleteMovie">Delete Movie</option>
+                `;
+            actionDropdown.style.display = 'block';
+        } else {
+            actionDropdown.style.display = 'none';
+            formContainer.style.display = 'none';
+        }
+    });
+
+    document.getElementById('ActionDropdown').addEventListener('change', function () {
+        const selectedAction = this.value;
+        const selectedDatabase = document.getElementById('EditDropdown').value;
+        const formContainer = document.getElementById('formContainer');
+        const nameDropdown = document.getElementById('NameDropdown');
+
+        if (selectedAction === "AddActor") {
+            formContainer.innerHTML = `
+                    <input type="text" id="actorName" placeholder="Name" required>
+                    <input type="text" id="actorGender" placeholder="Gender" required>
+                    <input type="number" id="actorAge" placeholder="Age" required>
+                    <input type="text" id="actorIMDBLink" placeholder="IMDB Hyperlink" required>
+                    <input type="text" id="actorPhoto" placeholder="Photo of actor link" required>
+                    <button id="saveActorButton">Save</button>
+                `;
+            formContainer.style.display = 'block';
+            nameDropdown.style.display = 'none';
+        } else if (selectedAction === "AddMovie") {
+            formContainer.innerHTML = `
+                    <input type="text" id="movieTitle" placeholder="Title" required>
+                    <input type="text" id="movieGenre" placeholder="Genre" required>
+                    <input type="text" id="movieIMDBLink" placeholder="IMDB Hyperlink" required>
+                    <input type="number" id="movieYear" placeholder="Year of release" required>
+                    <input type="text" id="moviePoster" placeholder="Link to poster" required>
+                    <button id="saveMovieButton">Save</button>
+                `;
+            formContainer.style.display = 'block';
+            nameDropdown.style.display = 'none';
+        } else if (selectedAction === "EditActor" || selectedAction === "DeleteActor") {
+            fetch('/Actors/GetActorNames')
+                .then(response => response.json())
+                .then(data => {
+                    nameDropdown.innerHTML = '<option value="">Select a Name</option>';
+                    data.forEach(name => {
+                        const option = document.createElement('option');
+                        option.value = name;
+                        option.text = name;
+                        nameDropdown.appendChild(option);
+                    });
+                    nameDropdown.style.display = 'block';
+                })
+                .catch(error => console.error('Error fetching actor names:', error));
+            formContainer.style.display = 'none';
+        } else if (selectedAction === "EditMovie" || selectedAction === "DeleteMovie") {
+            fetch('/Movies/GetMovieTitles')
+                .then(response => response.json())
+                .then(data => {
+                    nameDropdown.innerHTML = '<option value="">Select a Title</option>';
+                    data.forEach(title => {
+                        const option = document.createElement('option');
+                        option.value = title;
+                        option.text = title;
+                        nameDropdown.appendChild(option);
+                    });
+                    nameDropdown.style.display = 'block';
+                })
+                .catch(error => console.error('Error fetching movie titles:', error));
+            formContainer.style.display = 'none';
+        } else {
+            formContainer.style.display = 'none';
+            nameDropdown.style.display = 'none';
+        }
+    });
+
+    document.getElementById('NameDropdown').addEventListener('change', function () {
+        const selectedAction = document.getElementById('ActionDropdown').value;
+        const selectedName = this.value;
+        const formContainer = document.getElementById('formContainer');
+
+        if (selectedAction === "EditActor") {
+            fetch(`/Actors/GetActorDetails?name=${encodeURIComponent(selectedName)}`)
+                .then(response => response.json())
+                .then(data => {
+                    formContainer.innerHTML = `
+                            <input type="text" id="actorName" placeholder="Name" value="${data.Name}" required>
+                            <input type="text" id="actorGender" placeholder="Gender" value="${data.Gender}" required>
+                            <input type="number" id="actorAge" placeholder="Age" value="${data.Age}" required>
+                            <input type="text" id="actorIMDBLink" placeholder="IMDB Hyperlink" value="${data.IMDBLink}" required>
+                            <input type="text" id="actorPhoto" placeholder="Photo of actor link" value="${data.Photo}" required>
+                            <button id="saveActorButton">Save</button>
+                        `;
+                    formContainer.style.display = 'block';
+                })
+                .catch(error => console.error('Error fetching actor details:', error));
+        } else if (selectedAction === "EditMovie") {
+            fetch(`/Movies/GetMovieDetails?title=${encodeURIComponent(selectedName)}`)
+                .then(response => response.json())
+                .then(data => {
+                    formContainer.innerHTML = `
+                            <input type="text" id="movieTitle" placeholder="Title" value="${data.Title}" required>
+                            <input type="text" id="movieGenre" placeholder="Genre" value="${data.Genre}" required>
+                            <input type="text" id="movieIMDBLink" placeholder="IMDB Hyperlink" value="${data.IMBDLink}" required>
+                            <input type="number" id="movieYear" placeholder="Year of release" value="${data.YearOfRelease}" required>
+                            <input type="text" id="moviePoster" placeholder="Link to poster" value="${data.Poster}" required>
+                            <button id="saveMovieButton">Save</button>
+                        `;
+                    formContainer.style.display = 'block';
+                })
+                .catch(error => console.error('Error fetching movie details:', error));
+        } else if (selectedAction === "DeleteActor") {
+            formContainer.innerHTML = `
+            <button id="deleteActorButton">Delete ${selectedName}?</button>
+        `;
+            formContainer.style.display = 'block';
+            document.getElementById('deleteActorButton').addEventListener('click', function () {
+                alert(`${selectedName} has been deleted`);
+                
+            });
+        } else if (selectedAction === "DeleteMovie") {
+            formContainer.innerHTML = `
+            <button id="deleteMovieButton">Delete ${selectedName}?</button>
+        `;
+            formContainer.style.display = 'block';
+            document.getElementById('deleteMovieButton').addEventListener('click', function () {
+                alert(`${selectedName} has been deleted`);
+                
+            });
+        }
+
+
+    });
+</script>

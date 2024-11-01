@@ -61,6 +61,26 @@ body {
     font-family: Broadway;
 }
 
+.containerEdit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+    min-height: 100vh;
+    padding-top: 20px;
+}
+
+.EditTitle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: center;
+    font-size: 60px;
+    font-family: Broadway;
+}
+
 .containerActor {
     display: flex;
     flex-direction: column;
